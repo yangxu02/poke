@@ -45,12 +45,33 @@ print headers
 body = table.first('tbody')
 rows = body.all(tagname = 'tr')
 pokemons = []
+pokemon_dict = []
+dict_keys = ["id" , "name", "type", "stamina", "attack", "defense", "capture_rate", "flee_rate", "candy", "quick_moves", "special_moves"]
+dict_key_types = ["int" , "str", "list", "int", "int", "int", "%", "%", "int", "list", "list"]
 for row in rows:
     cols = row.all(tagname = 'td')
     vals = []
+    pokemon_text = {}
+    i = 0
     for col in cols:
         vals.append(col.text.encode('utf-8').replace('\xe2\x80\x94', '-').split('\n'))
+        text = col.text.encode('utf-8').replace('\xe2\x80\x94', '-');
+        if dict_key_types[i] == 'list':
+            pokemon_text[dict_keys[i]] = text.split('\n')
+        elif dict_key_types[i] == 'int':
+            pokemon_text[dict_keys[i]] = -1 if '-' == text else int(text)
+        elif dict_key_types[i] == '%':
+            pokemon_text[dict_keys[i]] = -1 if '-' == text else float(text[:-1]) / 100
+        elif dict_key_types[i] == 'str':
+            pokemon_text[dict_keys[i]] = text
+
+        i += 1
+    pokemon_dict.append(pokemon_text)
     pokemons.append(Pokemon(headers, vals))
+    print str(headers) + " = " + str(vals)
+
+with open("pokemon.json", 'wb') as fp:
+    fp.write(str(pokemon_dict))
 
 with open('pokemon_list', 'wb') as fp:
     pickle.dump(pokemons, fp)
